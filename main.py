@@ -8,8 +8,7 @@ from picamera2 import Picamera2
 app = Flask(__name__)
 
 picam2 = Picamera2()
-picam2.configure(picam2.create_video_configuration(main={"size": (1280, 720), "format": "RGB88
-8"}))
+picam2.configure(picam2.create_video_configuration(main={"size": (1280, 720), "format": "RGB888"}))
 picam2.start()
 time.sleep(2)  # let auto-exposure/white-balance settle before the first capture
 
@@ -30,9 +29,9 @@ def capture_loop():
         fps = fps * 0.9 + instant_fps * 0.1 if fps else instant_fps  # smooth out jitter
 
         cv2.putText(frame, f"{fps:.1f} FPS", (10, 30),
-                    cv2.FONT_HE, 2)
+                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-        ok, jpeg = cv2.imencode
+        ok, jpeg = cv2.imencode(".jpg", frame)
         if ok:
             with frame_lock:
                 latest_frame = jpeg.tobytes()
@@ -46,7 +45,7 @@ def mjpeg_generator():
             time.sleep(0.05)
             continue
         yield (b"--frame\r\n"
-               b"Content-Type:  b"\r\n")
+               b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
 
 @app.route("/")
@@ -54,7 +53,7 @@ def index():
     return """
     <html>
       <head><title>Drone Camera</title></head>
-      <body style="margin:0;bac
+      <body style="margin:0;background:#000;">
         <img src="/stream" style="width:100%;height:100vh;object-fit:contain;">
       </body>
     </html>
