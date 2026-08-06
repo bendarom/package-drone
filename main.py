@@ -39,7 +39,7 @@ def detect_tag_offset(frame):
         return None, None, 0.0, 0.0
 
     tag_corners = corners[0][0]
-    tag_id = int(ids[0][0])
+    tag_id = int(ids.flatten()[0])
     tag_center = tag_corners.mean(axis=0)
     offset_x = tag_center[0] - FRAME_CENTER[0]
     offset_y = tag_center[1] - FRAME_CENTER[1]
