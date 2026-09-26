@@ -1,0 +1,15 @@
+import serial
+
+ser = serial.Serial('/dev/serial0', 115200, timeout=1)
+
+print('Listening for flight controller data...')
+try:
+  while True:
+    if ser.in_waiting > 0:
+      data = ser.readline().decode('utf-8', errors='ignore').strip()
+      if data:
+        print(f'Received: {data}')
+except KeyboardInterrupt:
+  print('Test stopped.')
+finally:
+  ser.close()
