@@ -1,0 +1,44 @@
+# Mission configuration. Values marked TBD are null on purpose: code must refuse
+# to start a mission while any required value is still null.
+
+connection:
+  # Pi -> FC serial. For SITL use e.g. "tcp:127.0.0.1:5760".
+  device: /dev/ttyAMA0
+  baud: 921600
+  heartbeat_timeout_s: null  # TBD
+
+box:
+  # GPS coordinate of the box (decimal degrees). Only gets us to the area (~2-3 m error).
+  lat: null  # TBD
+  lon: null  # TBD
+
+altitude:
+  initial_climb_rangefinder_m: 1.0  # climb on balcony until rangefinder reads this
+  cruise_alt_m: null                # TBD, relative to home (baro)
+
+speed:
+  cruise_mps: null        # TBD
+  descent_mps: null       # TBD, final descent onto the box
+  max_center_mps: null    # TBD, max horizontal speed while centering over a tag
+
+tags:
+  library: null    # TBD
+  family: tag36h11
+  size_m: null     # TBD, black-border edge length
+  box_id: 1
+  balcony_id: 2
+
+camera:
+  resolution: [1280, 720]
+  calibration_file: null  # TBD, will be calibration/camera.yaml
+
+timeouts:
+  tag_lost_s: 2.0          # tag lost longer than this -> hold position, then RTL
+  hold_before_rtl_s: null  # TBD
+  climb_s: null            # TBD
+  goto_s: null             # TBD
+  center_s: null           # TBD
+  descent_s: null          # TBD
+
+logging:
+  dir: logs
