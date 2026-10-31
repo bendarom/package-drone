@@ -1,44 +1,98 @@
-# Mission configuration. Values marked TBD are null on purpose: code must refuse
-# to start a mission while any required value is still null.
+# Mission configuration. Key names match CLAUDE.md and docs/MISSION.md, which are
+# the source of truth. Values marked TBD are null on purpose: code must refuse to
+# start a mission while any required value is still null.
+# Heights are meters, speeds m/s, times seconds, offsets body frame (meters).
 
 connection:
   # Pi -> FC serial. For SITL use e.g. "tcp:127.0.0.1:5760".
-  device: /dev/ttyAMA0
+  connection_string: /dev/ttyAMA0
   baud: 921600
-  heartbeat_timeout_s: null  # TBD
+  sysid: 1            # same as the vehicle
+  compid: 191         # MAV_COMP_ID_ONBOARD_COMPUTER
+  run_mode: real      # real | sitl | shadow; also picks params/expected_<real|sitl>.yaml
 
-box:
-  # GPS coordinate of the box (decimal degrees). Only gets us to the area (~2-3 m error).
-  lat: null  # TBD
-  lon: null  # TBD
+start_switch:
+  rc_channel: null          # TBD
+  pwm_threshold: null       # TBD
 
-altitude:
-  initial_climb_rangefinder_m: 1.0  # climb on balcony until rangefinder reads this
-  cruise_alt_m: null                # TBD, relative to home (baro)
+positions:
+  # Box GPS coordinate (decimal degrees). Only gets us to the area (~2-3 m error).
+  box_lat: null                     # TBD
+  box_lon: null                     # TBD
+  box_ground_alt_rel_home_m: null   # TBD; negative if the balcony is above the box ground. 0 in SITL.
 
-speed:
-  cruise_mps: null        # TBD
-  descent_mps: null       # TBD, final descent onto the box
-  max_center_mps: null    # TBD, max horizontal speed while centering over a tag
+altitudes:
+  takeoff_check_height_m: 1.0           # lidar height above the balcony floor; also the takeoff target rel. home
+  takeoff_check_tolerance_m: 0.2
+  cruise_alt_rel_home_m: null           # TBD, baro
+  search_height_m: 5.0                  # above box ground, baro
+  commit_height_m: 0.5                  # below this: blind vertical descent
+  pickup_check_height_m: 1.5            # throttle-hold height for the attachment check
+  balcony_approach_alt_rel_home_m: null # TBD, clears the railing with margin
+  balcony_handoff_height_m: null        # TBD, above the balcony floor; then LAND
+
+speeds:
+  cruise_speed_m_s: null          # TBD
+  descent_speed_m_s: null         # TBD, tag approach above commit height
+  final_descent_speed_m_s: null   # TBD, blind descent below commit height
+  max_centering_speed_m_s: null   # TBD
+  centering_tolerance_m: null     # TBD, descend only while centering error is within this
+
+search:
+  # Expanding square centered on the box GPS coordinate, baro altitude, no rangefinder.
+  search_leg_spacing_m: 2.5
+  search_max_radius_m: 5.0
+  search_speed_m_s: 1.0
+  tag_acquire_frames: 3           # consecutive frames with the target tag = acquired
+
+geometry:
+  camera_offset_m: null           # TBD, [x, y, z] from drone center
+  lidar_offset_m: null            # TBD, [x, y, z] from drone center
+  lidar_mount_height_m: null      # TBD, lens height with the drone resting on its gear
+  box_thickness_m: null           # TBD, box height above the ground
+  magnet_clearance_m: null        # TBD, magnet face above the bottom of the gear; must be <= box_thickness_m
 
 tags:
-  library: null    # TBD
   family: tag36h11
-  size_m: null     # TBD, black-border edge length
-  box_id: 1
-  balcony_id: 2
+  box_tag_id: 1
+  balcony_tag_id: 2
+  tag_size_m: 0.16                # black square outer edge, excl. white margin; replace with measured size
 
 camera:
-  resolution: [1280, 720]
-  calibration_file: null  # TBD, will be calibration/camera.yaml
+  resolution: [1296, 972]         # explicitly select the full-FOV 1296x972 sensor mode
+  frame_rate: null                # TBD
+  exposure_mode: auto             # auto | cap | fixed
+  exposure_time_us: null          # max (cap) or fixed exposure; unused in auto
+  calibration_file: null          # TBD, will be calibration/camera.yaml
+
+rangefinder:
+  min_valid_m: 0.1                # blind zone
+  max_reliable_m: 6.0             # outdoors in sunlight
+  preflight_tolerance_m: 0.05     # reading vs lidar_mount_height_m on the ground
+  preflight_max_over_m: 0.3       # fail if reading > lidar_mount_height_m + this
+  baro_lidar_warn_m: null         # TBD, warn at approach start if baro and lidar heights differ by more
+
+pickup:
+  contact_stall_s: null           # TBD
+  # contact_height_max_m is derived: (box_thickness_m - magnet_clearance_m) + 0.05
+  magnet_settle_s: null           # TBD
+  pickup_check_hold_s: 3.0
+  attach_throttle_rise_pct: 10.0  # relative: (after - before) / before * 100
 
 timeouts:
-  tag_lost_s: 2.0          # tag lost longer than this -> hold position, then RTL
-  hold_before_rtl_s: null  # TBD
-  climb_s: null            # TBD
-  goto_s: null             # TBD
-  center_s: null           # TBD
-  descent_s: null          # TBD
+  takeoff_climb_timeout_s: 15.0   # -> LAND (still over the balcony)
+  search_timeout_s: null          # TBD, -> failed pickup
+  tag_lost_hold_s: 2.0            # after acquisition: lost longer than this -> hold
+  reacquire_timeout_s: null       # TBD, -> failed pickup (box) or hand to pilot (balcony)
+  approach_timeout_s: null        # TBD, acquisition -> commit height
+  descent_timeout_s: null         # TBD, from crossing commit height to contact
+  balcony_tag_timeout_s: null     # TBD, -> hold, then hand to pilot
+  mission_timeout_s: null         # TBD, -> return (hand to pilot if already in step 7)
+
+battery_gps:
+  min_start_v: null               # TBD
+  return_v: null                  # TBD, before contact -> failed pickup; after -> warning only
+  min_sats: null                  # TBD
 
 logging:
   dir: logs
