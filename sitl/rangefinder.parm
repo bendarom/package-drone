@@ -1,0 +1,11 @@
+# SITL-only: simulated downward rangefinder standing in for the TFmini Plus.
+# Loaded with sim_vehicle.py --add-param-file (see docs/SITL.md). Never loaded on the FC.
+# Names/units checked against ArduPilot Copter-4.7.1 (RNGFND1_MIN/MAX are meters).
+# EKF height source is left at its default (baro); the rangefinder is never the
+# EKF height source (CLAUDE.md hard rules).
+RNGFND1_TYPE    100     # SITL simulated rangefinder
+RNGFND1_ORIENT  25      # pitch 270 = facing down
+RNGFND1_MIN     0.1     # TFmini Plus blind zone (config.yaml rangefinder.min_valid_m)
+RNGFND1_MAX     12      # TFmini Plus rated range
+# RNGFND1_POS_X/Y/Z and RNGFND1_GNDCLR left at defaults until lidar_offset_m and
+# lidar_mount_height_m are measured (TBD in config.yaml).
