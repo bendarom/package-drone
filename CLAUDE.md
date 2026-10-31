@@ -61,7 +61,7 @@ detection.
 
 
 ## AprilTags
-- Family tag36h11. Box tag ID 1, balcony tag ID 2 (in config.yaml). Tag size TBD
+- Family tag36h11. Box tag ID 1, balcony tag ID 2 (in config.yaml). Tag size ~7mmx7mm
   (in config.yaml).
 - Library: use the same detection library arducam.py uses.
 - Tags sit on the ground NEXT TO the box and next to the balcony landing spot, not
@@ -261,7 +261,7 @@ detection.
 
 
 ## Testing
-- SITL runs on my computer (OS: TBD), not on the Pi.
+- SITL runs on my computer (OS: Windows 10), not on the Pi.
   - Install ArduPilot outside this repo (e.g. ~/ardupilot), check out the tag that
     matches the FC (Copter-4.7.1), build SITL, and write the exact steps in SITL.md.
   - Simulate a downward rangefinder.
