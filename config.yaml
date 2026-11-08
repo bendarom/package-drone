@@ -2,18 +2,49 @@
 # the source of truth. Values marked TBD are null on purpose: code must refuse to
 # start a mission while any required value is still null.
 # Heights are meters, speeds m/s, times seconds, offsets body frame (meters).
+# config.py validates the whole file (unknown keys, types, ranges, cross-checks).
+# SITL: pass sitl/config.sitl.yaml as an overlay instead of editing this file.
 
 connection:
-  # Pi -> FC serial. For SITL use e.g. "tcp:127.0.0.1:5760".
+  # Pi -> FC. Serial now; once mavlink-router owns the port (docs/SETUP.md) this
+  # becomes "udpin:127.0.0.1:14551". For SITL use "tcp:127.0.0.1:5762" (SERIAL1;
+  # 5760 is taken by MAVProxy), set in sitl/config.sitl.yaml.
   connection_string: /dev/ttyAMA0
-  baud: 921600
-  sysid: 1            # same as the vehicle
-  compid: 191         # MAV_COMP_ID_ONBOARD_COMPUTER
-  run_mode: real      # real | sitl | shadow; also picks params/expected_<real|sitl>.yaml
+  baud: 921600          # serial only; ignored for udp/tcp
+  sysid: 1              # same as the vehicle
+  compid: 191           # MAV_COMP_ID_ONBOARD_COMPUTER
+  run_mode: real        # real | sitl | shadow; also picks params/expected_<real|sitl>.yaml
+  heartbeat_hz: 1.0     # our HEARTBEAT to the FC
+  connect_timeout_s: 30.0     # wait this long for the first vehicle HEARTBEAT
+  link_timeout_s: 3.0         # no vehicle HEARTBEAT for this long -> link lost (logged)
+  command_ack_timeout_s: 2.0  # COMMAND_ACK wait for COMMAND_LONG (incl. SET_MESSAGE_INTERVAL)
+  param_read_timeout_s: 1.0   # per PARAM_REQUEST_READ attempt
+  param_read_retries: 3
+
+telemetry:
+  # Requested with MAV_CMD_SET_MESSAGE_INTERVAL at startup. Rates are per FC port.
+  rates_hz:
+    HEARTBEAT: 1
+    SYS_STATUS: 2
+    GLOBAL_POSITION_INT: 10
+    LOCAL_POSITION_NED: 10
+    ATTITUDE: 20            # roll/pitch correction of tag positions
+    DISTANCE_SENSOR: 20
+    EXTENDED_SYS_STATE: 5   # landed_state for contact detection
+    VFR_HUD: 10             # throttle for the attachment check
+    RC_CHANNELS: 5          # start switch
+    BATTERY_STATUS: 2
+    GPS_RAW_INT: 5
+    EKF_STATUS_REPORT: 2
+  log_hz: 1.0               # telemetry snapshot rate in logs/<run>/telemetry.jsonl
+
+commands:
+  velocity_rate_hz: 10.0    # SET_POSITION_TARGET_LOCAL_NED stream; MISSION.md requires >= 5
+  mode_change_timeout_s: 3.0  # our own mode change must show up in HEARTBEAT within this
 
 start_switch:
-  rc_channel: null          # TBD
-  pwm_threshold: null       # TBD
+  rc_channel: null          # TBD, 1-18
+  pwm_threshold: null       # TBD, start when the channel PWM is above this
 
 positions:
   # Box GPS coordinate (decimal degrees). Only gets us to the area (~2-3 m error).
@@ -60,10 +91,14 @@ tags:
 
 camera:
   resolution: [1296, 972]         # explicitly select the full-FOV 1296x972 sensor mode
+  fov_deg: [54.0, 41.0]           # nominal OV5647 FOV, used until calibration_file exists
   frame_rate: null                # TBD
   exposure_mode: auto             # auto | cap | fixed
   exposure_time_us: null          # max (cap) or fixed exposure; unused in auto
   calibration_file: null          # TBD, will be calibration/camera.yaml
+
+vision:
+  source: camera                  # camera | files | sim (SITL); sim tag positions TBD in the vision task
 
 rangefinder:
   min_valid_m: 0.1                # blind zone
@@ -74,6 +109,7 @@ rangefinder:
 
 pickup:
   contact_stall_s: null           # TBD
+  contact_stall_vz_m_s: null      # TBD, |vertical speed| below this counts as "descent stalled"
   # contact_height_max_m is derived: (box_thickness_m - magnet_clearance_m) + 0.05
   magnet_settle_s: null           # TBD
   pickup_check_hold_s: 3.0
@@ -95,4 +131,4 @@ battery_gps:
   min_sats: null                  # TBD
 
 logging:
-  dir: logs
+  dir: logs                       # relative to the repo root; one subfolder per run

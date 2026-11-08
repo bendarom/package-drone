@@ -1,0 +1,9 @@
+# SITL overlay for config.yaml: python <tool> --overlay sitl/config.sitl.yaml
+# Only what differs from the real drone. See docs/SITL.md for ports.
+connection:
+  connection_string: "tcp:127.0.0.1:5762"   # SITL SERIAL1 (5760 is MAVProxy's)
+  run_mode: sitl                             # uses params/expected_sitl.yaml
+positions:
+  box_ground_alt_rel_home_m: 0               # SITL ground is flat (docs/TESTING.md)
+vision:
+  source: sim

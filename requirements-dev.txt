@@ -1,0 +1,3 @@
+# Dev machine only (WSL), not the Pi.
+pytest
+pyyaml

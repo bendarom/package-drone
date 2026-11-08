@@ -81,7 +81,9 @@ Ports:
 - MAVProxy uses TCP 5760.
 - Mission code or a ground station connects on **`tcp:127.0.0.1:5762`** (SITL's
   SERIAL1). This works from WSL and, through WSL localhost forwarding, from Windows.
-  (config.yaml's comment says 5760; that only works when MAVProxy isn't running.)
+  `sitl/config.sitl.yaml` sets this.
+- `sitl/mode_poke.py` (a stand-in for a pilot or another GCS changing modes) uses
+  `tcp:127.0.0.1:5763` (SERIAL2).
 
 Simulated downward rangefinder: `sitl/rangefinder.parm` (SITL type 100, facing down,
 0.1–12 m). It is loaded on every start. The EKF height source stays at the default
@@ -118,6 +120,25 @@ m.mav.request_data_stream_send(m.target_system, m.target_component, 0, 4, 1)
 print(m.recv_match(type='GPS_RAW_INT', condition='GPS_RAW_INT.fix_type>=3', blocking=True, timeout=120))
 print(m.recv_match(type='DISTANCE_SENSOR', blocking=True, timeout=30))"
 ```
+
+
+## Mission-code checks
+
+To run SITL in the background (no MAVProxy prompt), add
+`--mavproxy-args='--daemon --non-interactive'` to the start command and run it as
+`nohup setsid sim_vehicle.py ... > ~/sitl-run.log 2>&1 < /dev/null &`.
+
+From the repo in an Ubuntu shell (`source ~/venv-ardupilot/bin/activate` first):
+
+```
+python -m pytest tests                                         # unit tests, no SITL needed
+python tools/telemetry.py --overlay sitl/config.sitl.yaml --duration 15
+python tools/check_params.py --overlay sitl/config.sitl.yaml   # must PASS
+python sitl/test_mode_watcher.py                               # no arming; ends in STABILIZE
+```
+
+Allow ~30 s after SITL starts. test_mode_watcher waits for a GPS fix and a healthy
+EKF, because LOITER needs a position even when disarmed.
 
 
 ## Stop

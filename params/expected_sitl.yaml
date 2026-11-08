@@ -1,0 +1,51 @@
+# Expected FC parameters in SITL (run_mode: sitl). Format and rules: docs/PARAMS.md.
+# Values checked against a Copter-4.7.1 SITL dump (~/sitl-copter/mav.parm) with
+# sitl/rangefinder.parm loaded. Read-only check: nothing here is ever written to the FC.
+params:
+  - name: MAV_SYSID
+    value: 1
+    reason: mission code talks to sysid 1 (config connection.sysid); renamed from SYSID_THISMAV in 4.7
+
+  - name: RNGFND1_TYPE
+    value: 100
+    reason: SITL simulated rangefinder (sitl/rangefinder.parm)
+  - name: RNGFND1_ORIENT
+    value: 25
+    reason: rangefinder must face down (pitch 270) for DISTANCE_SENSOR orientation 25
+  - name: RNGFND1_MIN
+    value: 0.1
+    tolerance: 0.001
+    reason: TFmini Plus blind zone, matches config rangefinder.min_valid_m
+  - name: RNGFND1_MAX
+    value: 12
+    tolerance: 0.001
+    reason: TFmini Plus rated range
+
+  - name: EK3_SRC1_POSZ
+    value: 1
+    reason: EKF height source must be baro, never the rangefinder (hard rule)
+  - name: EK3_RNG_USE_HGT
+    value: -1
+    reason: EKF must not switch to rangefinder height at low altitude (hard rule)
+
+  - name: GUID_TIMEOUT
+    value: 3
+    tolerance: 0.001
+    reason: GUIDED stops on its own this long after the last velocity command (Pi dies -> drone holds)
+  - name: DISARM_DELAY
+    value: 10
+    reason: auto-disarm delay after landing; contact detection must start the climb well before it
+
+  - name: FS_THR_ENABLE
+    value: 1
+    reason: RC-loss failsafe enabled (ArduPilot handles RC loss, this code sees the mode change)
+  - name: FS_EKF_ACTION
+    value: 1
+    reason: EKF failsafe action stays at SITL default (LAND)
+  - name: ARMING_SKIPCHK
+    value: 0
+    reason: all pre-arm checks enabled; renamed from ARMING_CHECK in 4.7 (0 = skip none)
+
+  - name: SERIAL1_PROTOCOL
+    value: 2
+    reason: SITL SERIAL1 (tcp 5762) is the mission-code link, MAVLink 2
