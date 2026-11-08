@@ -11,3 +11,5 @@
   <li>The drone then lands on top of the box (the magnet hangs below the feet of the landing gear and uses a spring to minimize the force applied to the frame. The spring also allows the drone to lower beyond where the magnet is hanging), flies up to its previous height, and flies back to the GPS coordinates of the balcony, where another AprilTag is used to guide the drone to where it will land on the balcony without the GPS error disrupting it.</li>
 </ul>
 <p>I can take over with the RC at any point, and most failures will automatically hand the RC control of the quadcopter.</p>
+
+<img width="5500" height="2379" alt="BN880 Motor Control Architecture-2026-10-31-215046" src="https://github.com/user-attachments/assets/e5c6469a-007b-4dc6-b493-f5721bffbec1" />
